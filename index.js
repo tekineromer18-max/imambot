@@ -19,8 +19,8 @@ const tagConfig = {
 
 const presenceConfig = {
   guildId: process.env.GUILD_ID,
-  rolid: process.env.PRESENCE_ROLE_ID || process.env.PRESENCE_ROL_ID,
-  logid: process.env.PRESENCE_LOG_CHANNEL_ID || process.env.PRESENCE_LOG_ID,
+  roleId: process.env.PRESENCE_ROLE_ID || process.env.PRESENCE_ROL_ID,
+  logChannelId: process.env.PRESENCE_LOG_CHANNEL_ID || process.env.PRESENCE_LOG_ID,
   durum: process.env.PRESENCE_DURUM || process.env.DURUM,
   surum: process.env.PRESENCE_SURUM || process.env.SURUM, // 'eski' veya 'yeni'
 };
@@ -76,17 +76,31 @@ client.once(Events.ClientReady, async () => {
     console.warn('GUILD_ID bulunamadı, slash komutları yüklenmedi (guild scope).');
   }
 
-  // Bot açıldığında tüm üyelere presence göre kontrol (isteğe bağlı)
+  // Bot açıldığında tüm üyelere presence göre kontrol
   try {
-    if (presenceConfig && presenceConfig.rolid) {
+    if (presenceConfig && presenceConfig.roleId) {
       const guild = client.guilds.cache.get(presenceConfig.guildId || GUILD_ID);
       if (guild) {
-        // roleManager.checkAllMembersPresence expects (guild, config)
+        console.log('📊 Tüm üyeler taranıyor (presence kontrolü)...');
         await roleManager.checkAllMembersPresence(guild, presenceConfig);
+        console.log('✅ Presence taraması tamamlandı.');
       }
     }
   } catch (err) {
     console.error('Başlangıç tarama hatası:', err?.message || err);
+  }
+});
+
+// Tag change -> etiket rolünü kontrol et
+client.on(Events.UserUpdate, async (oldUser, newUser) => {
+  try {
+    const guild = client.guilds.cache.get(GUILD_ID);
+    if (!guild) return;
+    const member = guild.members.cache.get(newUser.id);
+    if (!member) return;
+    await tagManager.checkAndAssignTagRole(member, client, tagConfig);
+  } catch (err) {
+    console.error('UserUpdate hatası:', err?.message || err);
   }
 });
 
@@ -95,7 +109,8 @@ client.on(Events.PresenceUpdate, async (oldPresence, newPresence) => {
   try {
     const member = newPresence?.member;
     if (!member) return;
-    await roleManager.evaluateMemberPresence(member, presenceConfig);
+    // Member'ın presence'ini direkt newPresence'den al
+    await roleManager.evaluateMemberPresence(member, presenceConfig, newPresence);
   } catch (err) {
     console.error('PresenceUpdate hatası:', err?.message || err);
   }

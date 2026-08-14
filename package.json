@@ -9,6 +9,7 @@
   "author": "tekineromer18-max",
   "license": "MIT",
   "dependencies": {
-    "discord.js": "^14.0.0"
+    "discord.js": "^14.0.0",
+    "dotenv": "^16.0.0"
   }
 }
