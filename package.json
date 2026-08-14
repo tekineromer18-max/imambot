@@ -1,0 +1,14 @@
+{
+  "name": "imambot",
+  "version": "1.0.0",
+  "description": "Merged tag-based and presence-based role bot",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "tekineromer18-max",
+  "license": "MIT",
+  "dependencies": {
+    "discord.js": "^14.0.0"
+  }
+}
